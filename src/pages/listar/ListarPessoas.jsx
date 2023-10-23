@@ -8,7 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Pagination } from "antd";
 import classNames from "classnames";
-import cropImage from "../../utils/cropImage.jsx";
+// import cropImage from "../../utils/cropImage.jsx";
 
 function ListarPessoas() {
   // const ITENS_POR_PAG=3;
@@ -46,21 +46,24 @@ function ListarPessoas() {
   const [currentSort, setCurrentSort] = useState("asc");
 
   useEffect(() => {
-    // const fetchData = async () => {
-    //   const result = await fetch("https:jsonplaceholder.typicode.com/todos")
-    //     .then((Response) => Response.json())
-    //     .then((data) => data);
-    //   setItens(result);
-    // };
-    // fetch from localstorage
     const fetchData = async () => {
-      const result = await JSON.parse(localStorage.getItem("data"));
-      if (!result) {
-        return;
-      }
+      const result = await fetch(
+        "https://random-data-api.com/api/v2/users?size=50"
+      )
+        .then((Response) => Response.json())
+        .then((data) => data);
       setItens(result);
       setCurrentItens(result.slice(startIndex, endIndex));
     };
+    // fetch from localstorage
+    // const fetchData = async () => {
+    //   const result = await JSON.parse(localStorage.getItem("data"));
+    //   if (!result) {
+    //     return;
+    //   }
+    //   setItens(result);
+    //   setCurrentItens(result.slice(startIndex, endIndex));
+    // };
     fetchData();
   }, []);
 
@@ -209,24 +212,7 @@ function ListarPessoas() {
         return;
       }
       if (td.classList.contains("foto")) {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        input.capture = "user";
-        input.id = "imageFile";
-        input.className = "w-full p-2 rounded-lg border border-gray-300";
-        input.addEventListener("change", (e) => {
-          const file = e.target.files[0];
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onloadend = () => {
-            cropImage(reader.result, 1).then((res) => {
-              td.querySelector("img").src = res.toDataURL();
-            });
-          };
-        });
-        td.innerHTML = "";
-        td.appendChild(input);
+        return;
       }
       const input = document.createElement("input");
       input.value = td.innerHTML;
@@ -487,7 +473,7 @@ function ListarPessoas() {
             <span className="text-sm font-normal m-0 text-gray-500 ">
               Mostrando{" "}
               <span className="font-semibold text-gray-900 ">
-                {startIndex} - {endIndex}
+                {startIndex + 1} - {endIndex}
               </span>{" "}
               de{" "}
               <span className="font-semibold text-gray-900 ">
@@ -504,6 +490,7 @@ function ListarPessoas() {
               pageSize={itensPorPagina}
               current={currentPage}
               total={itens.length}
+              showSizeChanger={true}
             />
           </nav>
         </div>

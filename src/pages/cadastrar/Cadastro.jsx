@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import cropImage from "../../utils/cropImage.jsx";
+import { UploadOutlined } from "@ant-design/icons";
+import { Button, message, Upload } from "antd";
 
 function Cadastro() {
   const [nome, setNome] = useState("");
@@ -10,6 +12,39 @@ function Cadastro() {
   const [foto, setFoto] = useState("./img/profile-picture.jpeg");
 
   const navigate = useNavigate();
+
+  const uploadProps = {
+    name: "file",
+    action: "https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188",
+    headers: {
+      authorization: "authorization-text",
+    },
+    maxCount: 1,
+    onChange(info) {
+      if (info.file.status !== "uploading") {
+        console.log(info.file, info.fileList);
+      }
+      if (info.file.status === "done") {
+        message.success(`${info.file.name} file uploaded successfully`);
+      } else if (info.file.status === "error") {
+        message.error(`${info.file.name} file upload failed.`);
+      }
+    },
+    beforeUpload(info) {
+      const file = info;
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        cropImage(reader.result, 1).then((res) => {
+          setFoto(res.toDataURL());
+        });
+      };
+      return false;
+    },
+    onRemove() {
+      setFoto("./img/profile-picture.jpeg");
+    },
+  };
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -54,7 +89,10 @@ function Cadastro() {
           >
             Foto
           </label>
-          <input
+          <Upload {...uploadProps}>
+            <Button icon={<UploadOutlined />}>Click to Upload</Button>
+          </Upload>
+          {/* <input
             type="file"
             id="imageFile"
             capture="user"
@@ -70,7 +108,7 @@ function Cadastro() {
                 });
               };
             }}
-          />
+          /> */}
         </div>
         <div className="mb-4">
           <label
