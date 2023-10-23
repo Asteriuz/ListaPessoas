@@ -1,8 +1,10 @@
 import {  useNavigate,  } from "react-router-dom";
 import { useState } from "react";
 
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { Button, Form, Modal} from 'react-bootstrap';
 import CadastroModel from '../../model/cadasto.model';
+
 
 
 function Cadastro() {
@@ -40,12 +42,14 @@ function Cadastro() {
 
 
     return (
-        <div  className="jumbotron">
-          <h3 className="text-center"> Cadastrar</h3>
+        <div  className="jumbotron flex flex-col gap-y-12 justify-center h-screen items-center">
+          <h3 className="text-center text-4xl"> Cadastrar</h3>
  
                 <Form validated = {formValid}
                     noValidate
-                    onSubmit={cadastrar}>
+                    onSubmit={cadastrar}
+                    className="flex flex-col gap-y-3"
+                    >
 
                     <Form.Group className="mb-3">
                         <Form.Label for="nome">Nome</Form.Label>
@@ -97,7 +101,7 @@ function Cadastro() {
 
                     
                     <Form.Group className="text-center">
-                        <Button className="btn btn-primary"
+                        <Button className="btn btn-primary bg-blue-500 text"
                             variant="sucess"
                             type="submit">
                                 Cadastrar
