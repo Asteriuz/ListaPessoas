@@ -125,7 +125,7 @@ function Cadastro() {
         </div>
         <div className="flex items-center justify-between gap-x-12">
           <input
-            className="bg-vermelho-claro hover:bg-vermelho-hover text-white font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline"
+            className="cursor-pointer bg-vermelho-claro hover:bg-vermelho-hover text-white font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline"
             type="submit"
             value="Enviar"
           />

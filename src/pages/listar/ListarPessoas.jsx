@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faPlus, faRemove } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEdit,
+  faPlus,
+  faRemove,
+  faFilePdf,
+} from "@fortawesome/free-solid-svg-icons";
 import { Pagination } from "antd";
 import classNames from "classnames";
+import cropImage from "../../utils/cropImage.jsx";
 
 function ListarPessoas() {
   // const ITENS_POR_PAG=3;
@@ -167,16 +173,16 @@ function ListarPessoas() {
   const sortTable = (e, tag) => {
     if (currentSort === "asc") {
       setCurrentSort("desc");
-      const ths = document.querySelectorAll("th");
-      ths.forEach((th) => {
+      const tds = document.querySelectorAll("th");
+      tds.forEach((th) => {
         th.innerHTML = th.innerHTML.replace(" ▲", "");
         th.innerHTML = th.innerHTML.replace(" ▼", "");
       });
       e.target.innerHTML = `${e.target.innerHTML} ▼`;
       sortDesc(tag);
     } else {
-      const ths = document.querySelectorAll("th");
-      ths.forEach((th) => {
+      const tds = document.querySelectorAll("th");
+      tds.forEach((th) => {
         th.innerHTML = th.innerHTML.replace(" ▲", "");
         th.innerHTML = th.innerHTML.replace(" ▼", "");
       });
@@ -191,29 +197,52 @@ function ListarPessoas() {
     // nextSibling display none
     item.currentTarget.nextSibling.style.display = "none";
 
+    item.currentTarget.parentNode.querySelector("#btnPDF").style.display =
+      "none";
+
     const parent = item.currentTarget.parentNode.parentNode;
     // add salvar button
     // change th of row to input
-    const ths = item.currentTarget.parentNode.parentNode.querySelectorAll("th");
-    ths.forEach((th) => {
-      if (th.classList.contains("actions")) {
+    const tds = item.currentTarget.parentNode.parentNode.querySelectorAll("td");
+    tds.forEach((td) => {
+      if (td.classList.contains("actions")) {
         return;
       }
+      if (td.classList.contains("foto")) {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.capture = "user";
+        input.id = "imageFile";
+        input.className = "w-full p-2 rounded-lg border border-gray-300";
+        input.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onloadend = () => {
+            cropImage(reader.result, 1).then((res) => {
+              td.querySelector("img").src = res.toDataURL();
+            });
+          };
+        });
+        td.innerHTML = "";
+        td.appendChild(input);
+      }
       const input = document.createElement("input");
-      input.value = th.innerHTML;
-      input.name = th.classList[0];
+      input.value = td.innerHTML;
+      input.name = td.classList[0];
       input.className = "w-full p-2 rounded-lg border border-gray-300";
-      if (th.classList.contains("nome")) {
+      if (td.classList.contains("nome")) {
         input.className += " nome";
       }
-      if (th.classList.contains("telefone")) {
+      if (td.classList.contains("telefone")) {
         input.className += " telefone";
       }
-      if (th.classList.contains("profissao")) {
+      if (td.classList.contains("profissao")) {
         input.className += " profissao";
       }
-      th.innerHTML = "";
-      th.appendChild(input);
+      td.innerHTML = "";
+      td.appendChild(input);
     });
 
     const salvarButton = document.createElement("button");
@@ -244,9 +273,12 @@ function ListarPessoas() {
       setItens(result);
       setCurrentItens(result.slice(startIndex, endIndex));
 
-      const ths = parent.querySelectorAll("th");
-      ths.forEach((th) => {
+      const tds = parent.querySelectorAll("td");
+      tds.forEach((th) => {
         if (th.classList.contains("actions")) {
+          return;
+        }
+        if (th.classList.contains("foto")) {
           return;
         }
         th.innerHTML = th.querySelector("input").value;
@@ -256,9 +288,11 @@ function ListarPessoas() {
     salvarButton.addEventListener("click", () => {
       const btnEdit = parent.querySelector("#btnEdit");
       const btnRemove = parent.querySelector("#btnRemove");
+      const btnPDF = parent.querySelector("#btnPDF");
 
       btnEdit.style.display = "block";
       btnRemove.style.display = "block";
+      btnPDF.style.display = "block";
 
       salvarButton.remove();
     });
@@ -311,24 +345,27 @@ function ListarPessoas() {
           <table className="w-full text-sm text-left text-gray-600 table-fixed">
             <thead className="text-xs bg-vermelho-claro text-white uppercase">
               <tr>
+                <th scope="col" className="px-6 py-3 w-[4%]">
+                  <span className="sr-only">Image</span>
+                </th>
                 <th
                   onClick={(e) => sortTable(e, "first_name")}
                   scope="col"
-                  className="cursor-pointer px-6 py-3 w-[25%] text-xl"
+                  className="cursor-pointer px-6 py-3 w-[30%] text-xl"
                 >
                   Nome ▲
                 </th>
                 <th
                   onClick={(e) => sortTable(e, "phone_number")}
                   scope="col"
-                  className="cursor-pointer px-6 py-3 w-[25%] text-xl"
+                  className="cursor-pointer px-6 py-3 w-[20%] text-xl"
                 >
                   Telefone
                 </th>
                 <th
                   onClick={(e) => sortTable(e, "employment")}
                   scope="col"
-                  className="cursor-pointer px-6 py w-[35%] text-xl"
+                  className="cursor-pointer px-6 py w-[20%] text-xl"
                 >
                   Profissão
                 </th>
@@ -353,19 +390,38 @@ function ListarPessoas() {
                     key={item.id}
                     id={item.id}
                   >
-                    <th
+                    <td className="foto p-4">
+                      <img
+                        width={50}
+                        height={50}
+                        className="rounded-full"
+                        src={
+                          item.avatar
+                            ? item.avatar
+                            : "./img/profile-picture.jpeg"
+                        }
+                        alt="Profile Picture"
+                      />
+                    </td>
+                    <td
                       scope="row"
-                      className="nome px-6 text-base py-4 font-semibold whitespace-nowrap "
+                      className="nome pl-2 pr-6 text-base font-semibold whitespace-nowrap "
                     >
                       {item.first_name}
-                    </th>
-                    <th className="telefone px-6 py-4 font-normal text-base">
+                    </td>
+                    <td className="telefone px-6 font-normal text-base">
                       {item.phone_number}
-                    </th>
-                    <th className="profissao px-6 py-4 text-base font-normal">
+                    </td>
+                    <td className="profissao px-6 text-base font-normal">
                       {item.employment.title}
-                    </th>
-                    <th className="actions px-6 py-4 font-normal flex justify-center gap-x-8">
+                    </td>
+                    <td className="actions flex h-16 items-center justify-center gap-x-10 text-sm font-medium">
+                      <button id="btnPDF">
+                        <FontAwesomeIcon
+                          className="p-2 w-4 h-4 bg-violet-700 rounded-full text-white"
+                          icon={faFilePdf}
+                        />
+                      </button>
                       <button
                         id="btnEdit"
                         onClick={(item) => {
@@ -392,7 +448,7 @@ function ListarPessoas() {
                           }}
                         />
                       </button>
-                    </th>
+                    </td>
                   </tr>
                 );
               })}
