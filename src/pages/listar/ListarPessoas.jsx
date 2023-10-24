@@ -8,6 +8,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Pagination } from "antd";
 import classNames from "classnames";
+import { jsPDF } from "jspdf"; // will automatically load the node version
+
 // import cropImage from "../../utils/cropImage.jsx";
 
 function ListarPessoas() {
@@ -46,24 +48,24 @@ function ListarPessoas() {
   const [currentSort, setCurrentSort] = useState("asc");
 
   useEffect(() => {
-    const fetchData = async () => {
-      const result = await fetch(
-        "https://random-data-api.com/api/v2/users?size=50"
-      )
-        .then((Response) => Response.json())
-        .then((data) => data);
-      setItens(result);
-      setCurrentItens(result.slice(startIndex, endIndex));
-    };
-    // fetch from localstorage
     // const fetchData = async () => {
-    //   const result = await JSON.parse(localStorage.getItem("data"));
-    //   if (!result) {
-    //     return;
-    //   }
+    //   const result = await fetch(
+    //     "https://random-data-api.com/api/v2/users?size=50"
+    //   )
+    //     .then((Response) => Response.json())
+    //     .then((data) => data);
     //   setItens(result);
     //   setCurrentItens(result.slice(startIndex, endIndex));
     // };
+    // fetch from localstorage
+    const fetchData = async () => {
+      const result = await JSON.parse(localStorage.getItem("data"));
+      if (!result) {
+        return;
+      }
+      setItens(result);
+      setCurrentItens(result.slice(startIndex, endIndex));
+    };
     fetchData();
   }, []);
 
@@ -194,6 +196,24 @@ function ListarPessoas() {
       sortAsc(tag);
     }
   };
+
+  function printPDF(item) {
+    // only item info to pdf
+    const parent = item.currentTarget.parentNode.parentNode;
+    const tds = item.currentTarget.parentNode.parentNode.querySelectorAll("td");
+    // get attribute src
+    const avatar = tds[0].getElementsByTagName("img")[0].src;
+
+    // get values from tds
+    const itemValues = {
+      avatar,
+      first_name: tds[1].innerHTML,
+      phone_number: tds[2].innerHTML,
+      employment: {
+        title: tds[3].innerHTML,
+      },
+    };
+  }
 
   function editarLinha(item) {
     item.currentTarget.style.display = "none";
@@ -402,7 +422,7 @@ function ListarPessoas() {
                       {item.employment.title}
                     </td>
                     <td className="actions flex h-16 items-center justify-center gap-x-10 text-sm font-medium">
-                      <button id="btnPDF">
+                      <button id="btnPDF" onClick={(item) => printPDF(item)}>
                         <FontAwesomeIcon
                           className="p-2 w-4 h-4 bg-violet-700 rounded-full text-white"
                           icon={faFilePdf}
@@ -473,7 +493,8 @@ function ListarPessoas() {
             <span className="text-sm font-normal m-0 text-gray-500 ">
               Mostrando{" "}
               <span className="font-semibold text-gray-900 ">
-                {startIndex + 1} - {endIndex}
+                {startIndex + 1} -{" "}
+                {endIndex > itens.length ? itens.length : endIndex}
               </span>{" "}
               de{" "}
               <span className="font-semibold text-gray-900 ">
